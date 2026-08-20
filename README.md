@@ -1,524 +1,391 @@
-# Health API Backend
+# Health API Frontend
 
-FastAPI backend for the Health API system with database integration, user authentication, JWT-based security, and protected APIs.
+Quasar frontend for the Health API authentication system.
 
 ## Project Overview
 
-The Health API is a backend application developed using FastAPI.
+This project is the frontend application for the Health API backend.
 
-The backend provides:
+The frontend is developed using:
 
-- REST API endpoints
-- Health check API
-- SQLite database integration
-- SQLAlchemy ORM
-- User registration
-- User login
-- Password hashing
+- Vue.js
+- Quasar Framework
+- Pinia
+- Vite
+- JavaScript
+
+The frontend communicates with the FastAPI backend through REST APIs.
+
+### Frontend
+
+```text
+Quasar
+http://localhost:9000
+```
+
+### Backend
+
+```text
+FastAPI
+http://127.0.0.1:8000
+```
+
+---
+
+## Features
+
+The application currently provides:
+
+- User Registration / Sign Up
+- User Login
 - JWT-based authentication
-- Protected Change Password API
-- User roles: `ADMIN` and `USER`
-- CORS configuration
-- Request logging middleware
-- Environment-based application settings
-- Dependency injection
+- Pinia authentication state management
+- JWT persistence using localStorage
+- Protected Change Password functionality
+- FastAPI backend integration
+- CORS-enabled frontend-backend communication
+- Form validation
+- Login and registration notifications
+- User roles received from the authentication system
 
-## Technology Stack
+> Role-based authorization for `ADMIN` and `USER` is planned but is not yet implemented.
 
-- Python
-- FastAPI
-- Uvicorn
-- SQLAlchemy
-- SQLite
-- Pydantic
-- Pydantic Settings
-- JWT
-- Password Hashing
-- Redis
+---
+
+## Authentication Flow
+
+The frontend communicates with the FastAPI authentication APIs.
+
+```text
+Quasar Frontend
+      |
+      | HTTP Request
+      v
+FastAPI Backend
+      |
+      v
+Authentication Service
+      |
+      v
+Database
+```
+
+---
+
+## Registration Flow
+
+The user creates a new account through the Quasar Registration page.
+
+```text
+RegisterPage.vue
+      |
+      | POST /auth/register
+      v
+FastAPI Backend
+      |
+      v
+Create User
+      |
+      v
+Password Hashing
+      |
+      v
+SQLite Database
+```
+
+The registration API is anonymous, so the user does not need a JWT to register.
+
+---
+
+## Login Flow
+
+The user logs in through the Quasar Login page.
+
+```text
+LoginPage.vue
+      |
+      | POST /auth/login
+      v
+FastAPI Backend
+      |
+      v
+Verify Username + Password
+      |
+      v
+Generate JWT
+      |
+      v
+Quasar Frontend
+      |
+      v
+Pinia Auth Store
+      |
+      v
+localStorage
+```
+
+The JWT is then used when accessing protected APIs.
+
+---
+
+## Protected API Flow
+
+Protected requests send the JWT in the HTTP Authorization header.
+
+```text
+Quasar Frontend
+      |
+      | Authorization: Bearer <JWT>
+      v
+FastAPI Backend
+      |
+      v
+JWT Verification
+      |
+      v
+Protected Endpoint
+```
+
+---
+
+## Authentication APIs
+
+The frontend currently communicates with these backend endpoints:
+
+```text
+POST /auth/register
+POST /auth/login
+POST /auth/change_password
+```
+
+### Register
+
+```text
+POST http://127.0.0.1:8000/auth/register
+```
+
+Creates a new user in the backend database.
+
+### Login
+
+```text
+POST http://127.0.0.1:8000/auth/login
+```
+
+Authenticates the user and returns a JWT access token.
+
+### Change Password
+
+```text
+POST http://127.0.0.1:8000/auth/change_password
+```
+
+This is a protected endpoint and requires a valid JWT.
+
+---
 
 ## Project Structure
 
 ```text
-healthapi/
+healthapi-frontend/
 │
-├── app/
-│   ├── main.py
-│   ├── settings.py
-│   ├── database.py
-│   ├── redis.py
-│   ├── auth.py
-│   │
-│   ├── dependencies/
-│   │   ├── __init__.py
-│   │   ├── database_dependencies.py
-│   │   └── health_dependencies.py
-│   │
-│   ├── middleware/
-│   │   ├── __init__.py
-│   │   └── logging_middleware.py
-│   │
-│   ├── routers/
-│   │   ├── health_router.py
-│   │   └── auth_router.py
-│   │
-│   ├── services/
-│   │   ├── health_service.py
-│   │   └── auth_service.py
-│   │
-│   ├── models/
-│   │   └── ...
-│   │
-│   └── schemas/
-│       ├── auth_schema.py
-│       └── ...
+├── public/
 │
-├── healthapi.db
-├── requirements.txt
-├── .env
-├── .gitignore
+├── src/
+│   │
+│   ├── assets/
+│   │
+│   ├── boot/
+│   │
+│   ├── components/
+│   │
+│   ├── css/
+│   │
+│   ├── layouts/
+│   │
+│   ├── pages/
+│   │   ├── ErrorNotFound.vue
+│   │   ├── IndexPage.vue
+│   │   ├── SecondPage.vue
+│   │   ├── LoginPage.vue
+│   │   ├── RegisterPage.vue
+│   │   └── ChangePasswordPage.vue
+│   │
+│   ├── router/
+│   │   ├── index.js
+│   │   └── routes.js
+│   │
+│   ├── stores/
+│   │   ├── index.js
+│   │   ├── example-store.js
+│   │   └── auth-store.js
+│   │
+│   └── App.vue
+│
+├── index.html
+├── package.json
+├── package-lock.json
+├── quasar.config.js
+├── eslint.config.js
+├── jsconfig.json
+├── postcss.config.js
 └── README.md
 ```
 
-## Application Architecture
+---
 
-The backend follows a layered architecture:
+## Important Files
 
-```text
-Client
-  |
-  v
-FastAPI Application
-  |
-  v
-Router Layer
-  |
-  v
-Service Layer
-  |
-  v
-Dependency Layer
-  |
-  v
-SQLAlchemy
-  |
-  v
-SQLite Database
-```
+### `LoginPage.vue`
 
-For authentication:
+Provides the login interface.
+
+The page sends the username and password to:
 
 ```text
-Client
-  |
-  v
-/auth/register
-/auth/login
-/auth/change_password
-  |
-  v
-Authentication Router
-  |
-  v
-Authentication Service
-  |
-  v
-User Database
-```
-
-## FastAPI Application
-
-The main FastAPI application is created in:
-
-`app/main.py`
-
-The application connects the routers, middleware, and CORS configuration.
-
-Start the server using:
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-## API Endpoints
-
-### Health API
-
-```http
-GET /health
-```
-
-Test the health API:
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-Example response:
-
-```json
-{
-  "status": "healthy",
-  "app_name": "System Health API",
-  "version": "1.0.0"
-}
-```
-
-## Authentication
-
-The authentication system uses the `user` table.
-
-The user table contains:
-
-```text
-id
-username
-password_hash
-role
-```
-
-Supported roles:
-
-```text
-ADMIN
-USER
-```
-
-Passwords are stored as password hashes rather than plain-text passwords.
-
-## Registration
-
-Registration endpoint:
-
-```http
-POST /auth/register
-```
-
-The endpoint is anonymous and does not require authentication.
-
-Example request:
-
-```json
-{
-  "username": "newuser",
-  "password": "TestPassword123!",
-  "role": "USER"
-}
-```
-
-Example response:
-
-```json
-{
-  "id": 2,
-  "username": "newuser",
-  "role": "USER"
-}
-```
-
-Registration flow:
-
-```text
-Registration Request
-        |
-        v
-auth_router.py
-        |
-        v
-create_user()
-        |
-        v
-Password Hashing
-        |
-        v
-User Table
-        |
-        v
-SQLite Database
-```
-
-## Login
-
-Login endpoint:
-
-```http
 POST /auth/login
 ```
 
-Example request:
+After successful authentication, the backend returns a JWT access token.
 
-```json
-{
-  "username": "vaishnavi",
-  "password": "TestPassword123!"
-}
-```
+The token is stored through the Pinia authentication store.
 
-Example response:
+---
 
-```json
-{
-  "access_token": "JWT_TOKEN",
-  "token_type": "bearer"
-}
-```
+### `RegisterPage.vue`
 
-Login flow:
+Provides the Sign Up interface.
 
-```text
-Username + Password
-        |
-        v
-/auth/login
-        |
-        v
-authenticate_user()
-        |
-        v
-Verify Password
-        |
-        v
-Create JWT
-        |
-        v
-Return Access Token
-```
+The page contains:
 
-## JWT Authentication
+- Username
+- Password
+- Confirm Password
+- Sign Up button
 
-JWT is used to authenticate protected API requests.
-
-The JWT contains information such as:
-
-```json
-{
-  "sub": "1",
-  "username": "vaishnavi",
-  "role": "USER",
-  "exp": "expiration time"
-}
-```
-
-The client sends the JWT using:
-
-```http
-Authorization: Bearer <JWT>
-```
-
-Authentication flow:
+The registration form sends data to:
 
 ```text
-Login
-  |
-  v
-JWT Created
-  |
-  v
-Client Stores JWT
-  |
-  v
-Protected Request
-  |
-  v
-Authorization: Bearer JWT
-  |
-  v
-FastAPI JWT Verification
-  |
-  v
-Access Granted
+POST /auth/register
 ```
 
-## Change Password
+The backend then creates the user in the database.
 
-Endpoint:
+---
 
-```http
+### `ChangePasswordPage.vue`
+
+Provides the Change Password interface.
+
+The page sends:
+
+```text
+Current Password
+New Password
+```
+
+to:
+
+```text
 POST /auth/change_password
 ```
 
-This endpoint is protected and requires a valid JWT.
-
-Example request:
-
-```json
-{
-  "current_password": "TestPassword123!",
-  "new_password": "NewPassword123!"
-}
-```
-
-Request header:
+The JWT is included in the request:
 
 ```http
 Authorization: Bearer <JWT>
 ```
 
-Flow:
+---
+
+### `auth-store.js`
+
+The Pinia authentication store manages the frontend authentication state.
+
+It stores information such as:
 
 ```text
-JWT
- |
- v
-Verify Authentication
- |
- v
-Identify User
- |
- v
-Verify Current Password
- |
- v
-Hash New Password
- |
- v
-Update Database
+accessToken
+tokenType
+username
+role
 ```
 
-## Database
-
-The project uses SQLite:
-
-`healthapi.db`
-
-SQLAlchemy is used as the ORM.
-
-Database architecture:
+It provides authentication-related actions such as:
 
 ```text
-FastAPI
-   |
-   v
-SQLAlchemy
-   |
-   v
-SQLite
-   |
-   v
-healthapi.db
+setAuthData()
+setUserData()
+logout()
 ```
 
-To inspect the database:
+The JWT is persisted using browser `localStorage`.
+
+---
+
+### `routes.js`
+
+Defines the frontend routes.
+
+Current authentication-related routes include:
+
+```text
+/login
+/register
+/change-password
+```
+
+---
+
+## Installation
+
+Navigate to the project:
 
 ```bash
-sqlite3 healthapi.db
+cd ~/quasar-project
 ```
 
-Then:
+Install dependencies:
 
-```sql
-SELECT id, username, role FROM user;
+```bash
+npm install
 ```
 
-## Database Dependency
+---
 
-Database sessions are provided using FastAPI dependency injection.
+## Start the Development Server
 
-Example:
+Run:
 
-```python
-db: Session = Depends(get_db)
+```bash
+npm run dev
 ```
 
-Flow:
+Alternatively:
 
-```text
-API Endpoint
-     |
-     v
-Depends(get_db)
-     |
-     v
-Database Session
-     |
-     v
-SQLAlchemy
-     |
-     v
-SQLite
+```bash
+npx quasar dev
 ```
 
-## Settings
-
-Application configuration is maintained in:
-
-`app/settings.py`
-
-Configuration includes:
-
-- Application environment
-- JWT secret key
-- JWT expiration configuration
-- Application settings
-
-Sensitive configuration should be stored in environment variables.
-
-Do not commit `.env` to GitHub.
-
-## CORS
-
-The Quasar frontend runs on:
+The application will be available at:
 
 ```text
 http://localhost:9000
 ```
 
-The FastAPI backend runs on:
+---
 
-```text
-http://127.0.0.1:8000
-```
+## Run the FastAPI Backend
 
-CORS allows communication between the frontend and backend.
+The FastAPI backend must also be running.
 
-Architecture:
-
-```text
-Quasar
-localhost:9000
-      |
-      | HTTP Request
-      v
-FastAPI
-127.0.0.1:8000
-```
-
-## Middleware
-
-Request logging middleware is implemented in:
-
-`app/middleware/logging_middleware.py`
-
-It logs incoming API requests and responses.
-
-Example:
-
-```text
-POST /auth/login 200
-POST /auth/register 201
-POST /auth/change_password 200
-```
-
-## Dependencies
-
-Common dependencies are placed under:
-
-`app/dependencies/`
-
-Dependencies provide reusable functionality such as:
-
-- Database sessions
-- Application settings
-- Authentication dependencies
-
-## Running the Backend
-
-Navigate to the backend:
+Open another terminal:
 
 ```bash
 cd ~/AIML/healthapi
 ```
 
-Activate the virtual environment:
+Activate the Python virtual environment:
 
 ```bash
 source .venv/bin/activate
@@ -530,159 +397,337 @@ Start FastAPI:
 python -m uvicorn app.main:app --reload
 ```
 
-Backend URL:
+The backend will run at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger API documentation:
+FastAPI Swagger documentation:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## Testing
+---
 
-### Health API
+## Running the Complete Application
 
-```bash
-curl http://127.0.0.1:8000/health
-```
+Two terminals are required.
 
-### Register
+### Terminal 1 — FastAPI Backend
 
 ```bash
-curl -X POST http://127.0.0.1:8000/auth/register \
--H "Content-Type: application/json" \
--d '{
-  "username": "testuser",
-  "password": "TestPassword123!",
-  "role": "USER"
-}'
+cd ~/AIML/healthapi
+source .venv/bin/activate
+python -m uvicorn app.main:app --reload
 ```
 
-### Login
-
-```bash
-curl -X POST http://127.0.0.1:8000/auth/login \
--H "Content-Type: application/json" \
--d '{
-  "username": "testuser",
-  "password": "TestPassword123!"
-}'
-```
-
-## Security
-
-The authentication system follows these principles:
-
-- Passwords are hashed before storage.
-- Plain-text passwords are not stored in the database.
-- JWT is used for authentication.
-- Protected endpoints require a valid JWT.
-- JWT secret configuration is stored outside source code.
-- `.env` and database files should not be committed to Git.
-
-## Authentication vs Authorization
-
-Authentication answers:
+Backend:
 
 ```text
-Who are you?
+http://127.0.0.1:8000
 ```
 
-Authorization answers:
+### Terminal 2 — Quasar Frontend
+
+```bash
+cd ~/quasar-project
+npm run dev
+```
+
+Frontend:
 
 ```text
-What are you allowed to access?
+http://localhost:9000
 ```
 
-The current system implements JWT-based authentication and stores the user role as:
+---
+
+## Development Workflow
+
+```text
+1. Start FastAPI Backend
+        |
+        v
+2. Start Quasar Frontend
+        |
+        v
+3. Open Registration Page
+        |
+        v
+4. Create User
+        |
+        v
+5. Login
+        |
+        v
+6. Receive JWT
+        |
+        v
+7. Store JWT in Pinia
+        |
+        v
+8. Persist JWT in localStorage
+        |
+        v
+9. Access Protected APIs
+```
+
+---
+
+## Format & Lint
+
+Run linting:
+
+```bash
+npm run lint
+```
+
+Check linting without modifying files:
+
+```bash
+npm run lint:check
+```
+
+---
+
+## Production Build
+
+Build the application:
+
+```bash
+npm run build
+```
+
+Alternatively:
+
+```bash
+npx quasar build
+```
+
+---
+
+## CORS Configuration
+
+The frontend runs on:
+
+```text
+http://localhost:9000
+```
+
+The backend runs on:
+
+```text
+http://127.0.0.1:8000
+```
+
+FastAPI CORS configuration allows the Quasar frontend to communicate with the backend.
+
+```text
+Quasar Frontend
+localhost:9000
+       |
+       | REST API
+       v
+FastAPI Backend
+127.0.0.1:8000
+```
+
+---
+
+## Current Project Status
+
+### Frontend
+
+- [x] Quasar project setup
+- [x] Vue application setup
+- [x] Login page
+- [x] Registration page
+- [x] Change Password page
+- [x] Frontend routing
+- [x] Pinia authentication store
+- [x] JWT storage
+- [x] localStorage persistence
+- [x] Login API integration
+- [x] Registration API integration
+- [x] Change Password API integration
+- [x] CORS integration
+- [x] Form validation
+- [x] API error handling
+- [x] Success and error notifications
+
+### Backend Integration
+
+- [x] `/auth/register`
+- [x] `/auth/login`
+- [x] `/auth/change_password`
+- [x] JWT authentication
+- [x] Protected API communication
+
+### Authorization
+
+- [x] User roles are supported by the authentication system
+- [ ] ADMIN-only authorization
+- [ ] USER-specific authorization
+- [ ] Frontend role-based route protection
+- [ ] ADMIN dashboard
+- [ ] Role-based API permissions
+
+---
+
+## Frontend and Backend Repositories
+
+The project uses separate GitHub repositories.
+
+### Backend
+
+```text
+healthapi
+```
+
+Contains the FastAPI backend, database, authentication, JWT implementation, services, dependencies, and middleware.
+
+### Frontend
+
+```text
+healthapi-frontend
+```
+
+Contains the Quasar frontend, authentication pages, Pinia store, routing, and API integration.
+
+---
+
+## Overall System Architecture
+
+```text
+                         HEALTH API SYSTEM
+                                |
+                +---------------+---------------+
+                |                               |
+                v                               v
+        QUASAR FRONTEND                  FASTAPI BACKEND
+        localhost:9000                  127.0.0.1:8000
+                |                               |
+                |          REST API             |
+                +------------------------------>|
+                                                |
+                                       +--------+--------+
+                                       |                 |
+                                       v                 v
+                                   Routers          Middleware
+                                       |
+                                       v
+                                   Services
+                                       |
+                                       v
+                                  Dependencies
+                                       |
+                                       v
+                                   SQLAlchemy
+                                       |
+                                       v
+                                  SQLite DB
+```
+
+---
+
+## Authentication Architecture
+
+```text
+                         LOGIN
+                           |
+                           v
+                    LoginPage.vue
+                           |
+                           | POST /auth/login
+                           v
+                    FastAPI Backend
+                           |
+                           v
+                  Authenticate User
+                           |
+                           v
+                      Generate JWT
+                           |
+                           v
+                    Quasar Frontend
+                           |
+                           v
+                    Pinia Auth Store
+                           |
+                           v
+                      localStorage
+                           |
+                           v
+                  Protected API Request
+                           |
+                           | Bearer JWT
+                           v
+                    FastAPI Backend
+                           |
+                           v
+                    Verify JWT
+                           |
+                           v
+                  Protected Endpoint
+```
+
+---
+
+## Roles and Authorization
+
+The backend authentication system supports two roles:
 
 ```text
 ADMIN
 USER
 ```
 
-Role-based authorization can be added as a separate layer.
+The user's role is included in the authentication data/JWT.
 
-## Current Project Status
+However, role-based authorization is a separate feature and is **not yet implemented**.
 
-Implemented:
-
-- [x] FastAPI application
-- [x] Uvicorn server
-- [x] Health API
-- [x] SQLite database
-- [x] SQLAlchemy integration
-- [x] Database dependencies
-- [x] Application settings
-- [x] Logging middleware
-- [x] CORS configuration
-- [x] User table
-- [x] Password hashing
-- [x] User registration
-- [x] User login
-- [x] JWT authentication
-- [x] Protected Change Password API
-- [x] ADMIN / USER roles
-- [x] Quasar frontend integration
-
-## Related Frontend
-
-The Quasar frontend is maintained in a separate repository:
-
-`healthapi-frontend`
-
-The frontend provides:
-
-- Login page
-- Registration page
-- Change Password page
-- Pinia authentication store
-- JWT persistence
-- API communication
-
-## Overall System Architecture
+The planned authorization flow is:
 
 ```text
-                       HEALTH API SYSTEM
-                              |
-              +---------------+---------------+
-              |                               |
-              v                               v
-       QUASAR FRONTEND                 FASTAPI BACKEND
-       localhost:9000                 127.0.0.1:8000
-              |                               |
-              |          REST API             |
-              +------------------------------>|
-                                              |
-                                      +-------+-------+
-                                      |               |
-                                      v               v
-                                  Routers         Middleware
-                                      |
-                                      v
-                                  Services
-                                      |
-                                      v
-                                 Dependencies
-                                      |
-                                      v
-                                  SQLAlchemy
-                                      |
-                                      v
-                                  SQLite DB
+                    JWT
+                     |
+                     v
+              Identify User
+                     |
+                     v
+               Extract Role
+                     |
+              +------+------+
+              |             |
+              v             v
+             USER          ADMIN
+              |             |
+              v             v
+       User Permissions  Admin Permissions
 ```
+
+Future ADMIN-only endpoints may follow a structure such as:
+
+```text
+/admin/users
+/admin/dashboard
+/admin/settings
+```
+
+These will be protected by role-based authorization after the RBAC layer is implemented.
+
+---
 
 ## Future Improvements
 
-Planned improvements include:
-
 - Authentication route guards
 - ADMIN / USER role-based authorization
+- ADMIN-only protected APIs
+- USER-specific protected APIs
 - Protected dashboard
+- ADMIN dashboard
 - User profile
 - Logout interface
 - Centralized API client
